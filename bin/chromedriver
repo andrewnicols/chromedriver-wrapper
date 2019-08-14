@@ -1,0 +1,88 @@
+#!/bin/bash
+# This is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# Defaults:
+EXTRA_OPTIONS="${EXTRA_OPTIONS:-}"
+PATH_TO_CACHEDIR="${PATH_TO_CACHEDIR:-$( cd "$( dirname $( dirname $( realpath "${BASH_SOURCE[0]}" ) ) )" >/dev/null 2>&1 && pwd )/cache}"
+PATH_TO_CHROME="${PATH_TO_CHROME:-}"
+CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-}"
+
+echo "============================================================================"
+echo "== Chromedriver wrapper"
+echo "=="
+echo "== Copyright 2019 Andrew Nicols <andrew@nicols.co.uk>"
+echo "== License GNU GPL v3"
+echo "============================================================================"
+echo "= Cache directory: ${PATH_TO_CACHEDIR}"
+mkdir -p "${PATH_TO_CACHEDIR}"
+
+OS=`uname -s`
+if [ "${OS}" = "Linux" ]
+then
+  # Use the standard chrome release.
+  PATH_TO_CHROME="${PATH_TO_CHROME:-`which google-chrome-stable`}"
+  CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-linux64.zip}"
+elif [ "${OS}" = "Darwin" ]
+then
+  PATH_TO_CHROME="${PATH_TO_CHROME:-/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome}"
+  CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-mac64.zip}"
+else
+  echo "! Unable to determine host OS from uname '${OS}'"
+  echo "! Please submit a pull-request with your fix to https://github.com/andrewnicols/chromedriver-wrapper"
+  exit 1
+fi
+echo "= Operating system detected as ${OS}"
+echo "= Chrome path guessed as ${PATH_TO_CHROME}"
+
+validchrome=`bash -c "test -x ${PATH_TO_CHROME}"`
+if [ $? -ne 0 ]
+then
+  echo "! Unable to determine a valid location for the Chrome executable"
+  echo "! Please submit a pull-request with your fix to https://github.com/andrewnicols/chromedriver-wrapper"
+  exit 1
+fi
+echo "= Chrome found in ${PATH_TO_CHROME}"
+
+# Find the version of Chrome.
+CHROME_VERSION=`bash -c "${PATH_TO_CHROME} --version" | awk '{print $NF}' | sed 's/\.[0-9]*$//'`
+echo "= The version of Chrome currently installed is ${CHROME_VERSION}"
+
+# Check whether we already have a copy of chromedriver for this 
+PATH_TO_CHROMEDRIVER="${PATH_TO_CACHEDIR}/chromedriver_${CHROME_VERSION}"
+
+echo -n "= Looking for existing copy of chromedriver in '${PATH_TO_CHROMEDRIVER}'... "
+if [ -f "${PATH_TO_CHROMEDRIVER}" ]
+then
+  echo "found"
+  echo "== Using cached copy"
+else
+  echo "not found"
+  echo "== Finding out the latest release of chromedriver for Chrome ${CHROME_VERSION}"
+  CHROMEDRIVER_VERSION=`curl "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}"`
+
+  echo "== The relevant chromedriver version is '${CHROMEDRIVER_VERSION}'"
+  CHROMEDRIVER_SOURCE="https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_mac64.zip"
+
+  TMPDIR=`mktemp -d`
+  cd "${TMPDIR}"
+  echo "== Downloading from ${CHROMEDRIVER_SOURCE} to ${TMPDIR}"
+  wget -q -t 3 "${CHROMEDRIVER_SOURCE}"
+
+  echo "== Unzippping and moving into place"
+  unzip chromedriver_mac64 -d chromedriver
+  mv chromedriver/chromedriver "${PATH_TO_CHROMEDRIVER}"
+  cd -
+  rm -rf "{$TMPDIR}"
+fi
+
+echo "= Running with option ${EXTRA_OPTIONS} ${*}"
+echo "============================================================================"
+bash -c "${PATH_TO_CHROMEDRIVER} ${EXTRA_OPTIONS} ${*}"
