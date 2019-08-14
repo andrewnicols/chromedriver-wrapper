@@ -27,7 +27,7 @@ export PATH_TO_CHROME="/my/path/to/chrome/canary"
 ```
 
 ### Specify an alternative filename to download the file from Google
-You may need this if you run a 32-bit version of Linux.
+You may need this if Google renames their repos.
 ```
-export CHROMEDRIVER_SOURCE_FILENAME="linux32.zip"
+export CHROMEDRIVER_SOURCE_FILENAME="linux.zip"
 ```
