@@ -16,6 +16,7 @@ EXTRA_OPTIONS="${EXTRA_OPTIONS:-}"
 PATH_TO_CACHEDIR="${PATH_TO_CACHEDIR:-$( cd "$( dirname $( dirname $( realpath "${BASH_SOURCE[0]}" ) ) )" >/dev/null 2>&1 && pwd )/cache}"
 PATH_TO_CHROME="${PATH_TO_CHROME:-}"
 CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-}"
+CHROMEDRIVER_SOURCE_BASE="${CHROMEDRIVER_SOURCE_BASE:-https://chromedriver.storage.googleapis.com}"
 
 echo "============================================================================"
 echo "== Chromedriver wrapper"
@@ -71,18 +72,29 @@ else
   CHROMEDRIVER_VERSION=`curl "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}"`
 
   echo "== The relevant chromedriver version is '${CHROMEDRIVER_VERSION}'"
-  CHROMEDRIVER_SOURCE="https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/${CHROMEDRIVER_SOURCE_FILENAME}"
+  CHROMEDRIVER_SOURCE="${CHROMEDRIVER_SOURCE_BASE}/${CHROMEDRIVER_VERSION}/${CHROMEDRIVER_SOURCE_FILENAME}"
+  CHROMEDRIVER_NOTES="${CHROMEDRIVER_SOURCE_BASE}/${CHROMEDRIVER_VERSION}/notes.txt"
 
   TMPDIR=`mktemp -d`
   cd "${TMPDIR}"
   echo "== Downloading from ${CHROMEDRIVER_SOURCE} to ${TMPDIR}"
-  wget -q -t 3 "${CHROMEDRIVER_SOURCE}"
+  curl -s -o "${TMPDIR}/chromedriver.zip" "${CHROMEDRIVER_SOURCE}"
+  curl -s -o "${TMPDIR}/notes.txt" "${CHROMEDRIVER_NOTES}"
 
   echo "== Unzippping and moving into place"
   unzip "${TMPDIR}/chromedriver" -d chromedriver
   mv chromedriver/chromedriver "${PATH_TO_CHROMEDRIVER}"
+  mv notes.txt "${PATH_TO_CHROMEDRIVER}_notes.txt"
   cd -
   rm -rf "{$TMPDIR}"
+fi
+
+if [ -f "${PATH_TO_CHROMEDRIVER}_notes.txt" ]
+then
+  echo "== Displaying release notes:"
+  echo "============================================================================"
+  cat "${PATH_TO_CHROMEDRIVER}_notes.txt"
+  echo "============================================================================"
 fi
 
 echo "= Running with option ${EXTRA_OPTIONS} ${*}"
