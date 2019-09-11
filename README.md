@@ -9,25 +9,25 @@ Just ensure that the bin directory is in your `$PATH`
 You can test it's working correctly by running `chromedriver`
 
 ## Options
-You can specify a couple of options here:
+You can specify a couple of options here to the chromedriver wrapper. These can be specified in the chromedriver.conf file.
 
 ### Specify extra options to add to chromedriver
 ```
-export EXTRA_OPTIONS="--verbose --log-path=/tmp/chromedriver.log"
+EXTRA_OPTIONS="--verbose --log-path=/tmp/chromedriver.log"
 ```
 
 ### Specify an alternative location to store chromedriver binaries
 ```
-export PATH_TO_CACHEDIR="/tmp/mycache"
+PATH_TO_CACHEDIR="/tmp/mycache"
 ```
 
 ### Specify an alternative path to Chrome itself
 ```
-export PATH_TO_CHROME="/my/path/to/chrome/canary"
+PATH_TO_CHROME="/my/path/to/chrome/canary"
 ```
 
 ### Specify an alternative filename to download the file from Google
 You may need this if Google renames their repos.
 ```
-export CHROMEDRIVER_SOURCE_FILENAME="linux.zip"
+CHROMEDRIVER_SOURCE_FILENAME="linux.zip"
 ```

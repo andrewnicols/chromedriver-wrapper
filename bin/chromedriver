@@ -11,6 +11,27 @@ set -e
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+echo "============================================================================"
+echo "== Chromedriver wrapper"
+echo "=="
+echo "== Copyright 2019 Andrew Nicols <andrew@nicols.co.uk>"
+echo "== License GNU GPL v3"
+echo "============================================================================"
+
+pushd `dirname $0` > /dev/null
+SCRIPTPATH=`pwd`
+popd > /dev/null
+
+CONFPATH=`dirname "${SCRIPTPATH}"`/chromedriver.conf
+echo -n "= Looking for configuration in '${CONFPATH}'... "
+if [ -f "${CONFPATH}" ]
+then
+  echo "found! Loading"
+  source "${CONFPATH}"
+else
+  echo "not found."
+fi
+
 # Defaults:
 EXTRA_OPTIONS="${EXTRA_OPTIONS:-}"
 PATH_TO_CACHEDIR="${PATH_TO_CACHEDIR:-$( cd "$( dirname $( dirname $( realpath "${BASH_SOURCE[0]}" ) ) )" >/dev/null 2>&1 && pwd )/cache}"
@@ -18,12 +39,6 @@ PATH_TO_CHROME="${PATH_TO_CHROME:-}"
 CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-}"
 CHROMEDRIVER_SOURCE_BASE="${CHROMEDRIVER_SOURCE_BASE:-https://chromedriver.storage.googleapis.com}"
 
-echo "============================================================================"
-echo "== Chromedriver wrapper"
-echo "=="
-echo "== Copyright 2019 Andrew Nicols <andrew@nicols.co.uk>"
-echo "== License GNU GPL v3"
-echo "============================================================================"
 echo "= Cache directory: ${PATH_TO_CACHEDIR}"
 mkdir -p "${PATH_TO_CACHEDIR}"
 
