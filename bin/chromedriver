@@ -22,6 +22,8 @@ pushd `dirname $0` > /dev/null
 SCRIPTPATH=`pwd`
 popd > /dev/null
 
+ARCH=`uname -m`
+
 CONFPATH=`dirname "${SCRIPTPATH}"`/chromedriver.conf
 echo -n "= Looking for configuration in '${CONFPATH}'... "
 if [ -f "${CONFPATH}" ]
@@ -31,6 +33,10 @@ then
 else
   echo "not found."
 fi
+
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
 
 # Defaults:
 EXTRA_OPTIONS="${EXTRA_OPTIONS:-}"
@@ -51,7 +57,12 @@ then
 elif [ "${OS}" = "Darwin" ]
 then
   PATH_TO_CHROME="${PATH_TO_CHROME:-/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome}"
-  CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_mac64.zip}"
+  if [ $(( uname -m )) = "arm63" ]
+  then
+    CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_mac64_m1.zip}"
+  else
+    CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_mac64.zip}"
+  fi
 else
   echo "! Unable to determine host OS from uname '${OS}'"
   echo "! Please submit a pull-request with your fix to https://github.com/andrewnicols/chromedriver-wrapper"
@@ -74,7 +85,7 @@ CHROME_VERSION=`bash -c "${PATH_TO_CHROME} --version" | awk '{print $NF}' | sed 
 echo "= The version of Chrome currently installed is ${CHROME_VERSION}"
 
 # Check whether we already have a copy of chromedriver for this 
-PATH_TO_CHROMEDRIVER="${PATH_TO_CACHEDIR}/chromedriver_${CHROME_VERSION}"
+PATH_TO_CHROMEDRIVER="${PATH_TO_CACHEDIR}/chromedriver_${CHROME_VERSION}_${ARCH}"
 
 echo -n "= Looking for existing copy of chromedriver in '${PATH_TO_CHROMEDRIVER}'... "
 if [ -f "${PATH_TO_CHROMEDRIVER}" ]
