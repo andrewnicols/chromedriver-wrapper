@@ -123,6 +123,6 @@ then
   echo "============================================================================"
 fi
 
-echo "= Running with option ${EXTRA_OPTIONS} ${*}"
+echo "= Running ${PATH_TO_CHROMEDRIVER} ${EXTRA_OPTIONS} ${*}"
 echo "============================================================================"
 bash -c "${PATH_TO_CHROMEDRIVER} ${EXTRA_OPTIONS} ${*}"
