@@ -53,16 +53,9 @@ if [ "${OS}" = "Linux" ]
 then
   # Use the standard chrome release.
   PATH_TO_CHROME="${PATH_TO_CHROME:-`which google-chrome-stable`}"
-  CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_linux64.zip}"
 elif [ "${OS}" = "Darwin" ]
 then
   PATH_TO_CHROME="${PATH_TO_CHROME:-/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome}"
-  if [ $(( uname -m )) = "arm63" ]
-  then
-    CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_mac64_m1.zip}"
-  else
-    CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_mac64.zip}"
-  fi
 else
   echo "! Unable to determine host OS from uname '${OS}'"
   echo "! Please submit a pull-request with your fix to https://github.com/andrewnicols/chromedriver-wrapper"
@@ -96,18 +89,45 @@ else
   echo "not found"
   echo "== Finding out the latest release of chromedriver for Chrome ${CHROME_VERSION}"
   CHROMEDRIVER_VERSION=`curl "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION}"`
-
   echo "== The relevant chromedriver version is '${CHROMEDRIVER_VERSION}'"
+
+  if [ "${OS}" = "Linux" ]
+  then
+    # Use the standard chrome release.
+    echo "== Using linux64 Variant"
+    CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_linux64.zip}"
+  elif [ "${OS}" = "Darwin" ]
+  then
+    if [ $( uname -m ) = "arm64" ]
+    then
+      echo "============================================================================"
+      echo "============================================================================"
+      # The ARM64 version of Chromedriver moved to a new filename from version 106.0.5249.61
+      # https://groups.google.com/g/chromedriver-users/c/JRuQzH3qr2c/m/ObvcmOpVAwAJ
+      if [ $( echo ${CHROMEDRIVER_VERSION} | sed 's/^\([0-9]*\)\..*$/\1/' ) -lt 106 ]
+      then
+        echo "== Using M1 Variant"
+        CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_mac64_m1.zip}"
+      else
+        echo "== Using ARM64 Variant"
+        CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_mac64_arm64.zip}"
+      fi
+    else
+      echo "== Using mac64 Variant"
+      CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_mac64.zip}"
+    fi
+  fi
+
   CHROMEDRIVER_SOURCE="${CHROMEDRIVER_SOURCE_BASE}/${CHROMEDRIVER_VERSION}/${CHROMEDRIVER_SOURCE_FILENAME}"
   CHROMEDRIVER_NOTES="${CHROMEDRIVER_SOURCE_BASE}/${CHROMEDRIVER_VERSION}/notes.txt"
 
   TMPDIR=`mktemp -d`
   cd "${TMPDIR}"
-  echo "== Downloading from ${CHROMEDRIVER_SOURCE} to ${TMPDIR}"
+  echo "== Downloading from ${CHROMEDRIVER_SOURCE}"
   curl -s -o "${TMPDIR}/chromedriver.zip" "${CHROMEDRIVER_SOURCE}"
   curl -s -o "${TMPDIR}/notes.txt" "${CHROMEDRIVER_NOTES}"
 
-  echo "== Unzippping and moving into place"
+  echo "== Unzipping and moving into place"
   unzip "${TMPDIR}/chromedriver" -d chromedriver
   mv chromedriver/chromedriver "${PATH_TO_CHROMEDRIVER}"
   mv notes.txt "${PATH_TO_CHROMEDRIVER}_notes.txt"
