@@ -110,7 +110,7 @@ else
         CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_mac64_m1.zip}"
       else
         echo "== Using ARM64 Variant"
-        CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_mac64_arm64.zip}"
+        CHROMEDRIVER_SOURCE_FILENAME="${CHROMEDRIVER_SOURCE_FILENAME:-chromedriver_mac_arm64.zip}"
       fi
     else
       echo "== Using mac64 Variant"
