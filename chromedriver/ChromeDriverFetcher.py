@@ -89,7 +89,7 @@ class ChromeDriverFetcher:
     def getChromedriverUrl(self):
         majorVersion = int(self.chromeVersion.split('.')[0])
         if (majorVersion <= 114):
-            return self.getLegacyChromedriverUrl(self.platform, self.chromeVersion)
+            return self.getLegacyChromedriverUrl()
 
         content = self.getVersionData()
 
