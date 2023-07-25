@@ -58,6 +58,8 @@ class ChromeDriverFetcher:
         args.pop(0)
         self.chromedriverArgs += args
 
+        if (not os.path.isdir(self.cacheDir)):
+            os.mkdir(self.cacheDir)
 
     def getChromePath(self):
         if (self.pathToChrome is not None):
@@ -84,7 +86,10 @@ class ChromeDriverFetcher:
         version = self.chromeVersion.split('.')
         version.pop()
         version = '.'.join(version)
-        return "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_%s" % ( version )
+        latestVersionAvailableUrl = "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_%s" % ( version )
+        latestVersion = urllib.request.urlopen(latestVersionAvailableUrl).read().decode('utf-8')
+
+        return "https://chromedriver.storage.googleapis.com/%s/chromedriver_%s.zip" % ( latestVersion, self.platform )
 
     def getChromedriverUrl(self):
         majorVersion = int(self.chromeVersion.split('.')[0])
@@ -135,6 +140,10 @@ class ChromeDriverFetcher:
         return targetDirectory
 
     def getPathInZip(self, targetDirectory):
+        majorVersion = int(self.chromeVersion.split('.')[0])
+        if (majorVersion <= 114):
+            return "%s/chromedriver" % ( targetDirectory.name )
+
         return "%s/chromedriver-%s/chromedriver" % ( targetDirectory.name, self.platform )
 
     def getTargetPath(self):
