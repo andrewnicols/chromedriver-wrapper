@@ -1,5 +1,4 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env python3
 
 # This is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,16 +10,7 @@ set -e
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-echo "============================================================================"
-echo "== Chromedriver wrapper"
-echo "=="
-echo "== Copyright 2019 Andrew Nicols <andrew@nicols.co.uk>"
-echo "== License GNU GPL v3"
-echo "============================================================================"
+from chromedriver.ChromeDriverFetcher import ChromeDriverFetcher
 
-pushd `dirname $0` > /dev/null
-SCRIPTPATH=`pwd`
-popd > /dev/null
-
-SCRIPTDIR=`dirname $SCRIPTPATH`
-"${SCRIPTDIR}/chromedriver.py" "$@"
+fetcher = ChromeDriverFetcher()
+fetcher.executeDriver()

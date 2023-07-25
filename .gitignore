@@ -1,3 +1,5 @@
 /cache
 *.swp
 chromedriver.conf
+__pycache__
+env
