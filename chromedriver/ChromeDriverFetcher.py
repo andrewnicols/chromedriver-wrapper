@@ -66,7 +66,6 @@ class ChromeDriverFetcher:
             return self.pathToChrome
         if (sys.platform == 'darwin'):
             return "/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
-            return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
         elif (sys.platform == 'linux'):
             return distutils.spawn.find_executable("google-chrome-stable")
 
