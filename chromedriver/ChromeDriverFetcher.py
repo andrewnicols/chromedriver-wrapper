@@ -220,7 +220,6 @@ class ChromeDriverFetcher:
         if (not os.path.isfile(driverPath) or not os.access(driverPath, os.X_OK)):
             self.downloadAndUnzipChromeDriver()
 
-        print(self.chromedriverArgs)
         subprocess.run(
             self.chromedriverArgs,
             executable=driverPath,
