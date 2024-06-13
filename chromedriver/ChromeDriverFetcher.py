@@ -143,7 +143,7 @@ class ChromeDriverFetcher:
     def getPlatform(self):
         if (sys.platform == 'darwin'):
             return "mac-%s" % platform.machine()
-        if (sys.platform == 'linux'):
+        if (sys.platform.startswith('linux')):
             if (platform.machine() == 'x86_64'):
                 return "linux64"
             raise RuntimeError("Chrome is not supported on 32-bit versions of Linux")
