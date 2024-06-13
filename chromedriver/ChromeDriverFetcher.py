@@ -51,7 +51,7 @@ class ChromeDriverFetcher:
             chromeVersion = self.getChromeVersion()
         self.chromeVersion = chromeVersion
 
-        self.cacheDir = '%s/cache' % ( os.getcwd() )
+        self.cacheDir = '%s/cache' % ( os.path.dirname(os.path.dirname(__file__)) )
         self.getOptions()
 
         args = sys.argv
@@ -65,6 +65,7 @@ class ChromeDriverFetcher:
         if (self.pathToChrome is not None):
             return self.pathToChrome
         if (sys.platform == 'darwin'):
+            return "/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
             return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
         elif (sys.platform == 'linux'):
             return distutils.spawn.find_executable("google-chrome-stable")
@@ -74,7 +75,7 @@ class ChromeDriverFetcher:
     def getChromeVersion(self):
         versionOutput = subprocess.check_output([self.getChromePath(), '--version'])
         versionOutput = versionOutput.decode()
-        versionString = re.search('Google Chrome ([0-9.]+)', versionOutput).group(1).strip()
+        versionString = re.search('Google Chrome ?(for Testing)? ([0-9.]+)', versionOutput).group(2).strip()
 
         return versionString
 
@@ -96,20 +97,49 @@ class ChromeDriverFetcher:
         if (majorVersion <= 114):
             return self.getLegacyChromedriverUrl()
 
+        versionData = self.getClosestVersionMatch()
+        if (versionData is None):
+            raise ValueError("Unable to find a chromedriver download for %s" % ( self.chromeVersion ))
+
+        downloadData = versionData['downloads']
+        chromedriverData = downloadData.get('chromedriver')
+        if chromedriverData is None:
+            raise ValueError("Unable to find a chromedriver download for %s" % ( self.chromeVersion ))
+
+        for platformData in chromedriverData:
+            if platformData.get('platform') == self.platform:
+                return platformData.get('url')
+
+
+    def getClosestVersionMatch(self):
         content = self.getVersionData()
 
+        majorMinorVersion = self.chromeVersion.split('.')
+        majorMinorVersion.pop()
+        majorMinorVersion = '.'.join(majorMinorVersion)
+
+        possibleVersions = []
         for versionData in content['versions']:
-            if (versionData['version'] != self.chromeVersion):
-                continue
+            if (versionData['version'] == self.chromeVersion):
+                # Exact match. Return immediately.
+                print("Exact match found for %s" % ( self.chromeVersion ))
+                return versionData
 
-            downloadData = versionData['downloads']
-            chromedriverData = downloadData.get('chromedriver')
-            if chromedriverData is None:
-                raise ValueError("Unable to find a chromedriver download for %s" % ( self.chromeVersion ))
+            if (versionData['version'].startswith(majorMinorVersion)):
+                print("Possible match found for %s at %s" % ( self.chromeVersion, versionData['version'] ) )
+                possibleVersions.insert(0, versionData)
 
-            for platformData in chromedriverData:
-                if platformData.get('platform') == self.platform:
-                    return platformData.get('url')
+        # No exact version found. Try and find the closing older version instead.
+        patchNumber = int(self.chromeVersion.split('.')[3])
+
+        for versionData in possibleVersions:
+            thisPatchNumber = int(versionData['version'].split('.')[3])
+            if (thisPatchNumber > patchNumber):
+                 # Newer version. Skip.
+                 continue
+
+            # This is not an exact match, and it's not a newer version. It's the best match.
+            return versionData;
 
     def getPlatform(self):
         if (sys.platform == 'darwin'):
@@ -191,6 +221,7 @@ class ChromeDriverFetcher:
         if (not os.path.isfile(driverPath) or not os.access(driverPath, os.X_OK)):
             self.downloadAndUnzipChromeDriver()
 
+        print(self.chromedriverArgs)
         subprocess.run(
             self.chromedriverArgs,
             executable=driverPath,

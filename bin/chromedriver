@@ -23,4 +23,5 @@ SCRIPTPATH=`pwd`
 popd > /dev/null
 
 SCRIPTDIR=`dirname $SCRIPTPATH`
+
 "${SCRIPTDIR}/chromedriver.py" "$@"
